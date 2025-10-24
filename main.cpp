@@ -28,6 +28,7 @@ void manualInput(vector<Person>& students, bool useMedian) {
         
         cout << "Add another student? (y/n): ";
         cin >> choice;
+        cin.ignore(); // Clear input buffer
     } while (choice == 'y' || choice == 'Y');
 }
 
@@ -77,7 +78,9 @@ bool readFromFile(vector<Person>& students, bool useMedian) {
         
         file >> exam;
         
-        // In real implementation, you'd set homework scores
+        // Set the homework scores and exam grade
+        student.setHomeworkGrades(homework);
+        student.setExamGrade(exam);
         student.calculateFinalGrade(useMedian);
         students.push_back(student);
     }
@@ -86,7 +89,7 @@ bool readFromFile(vector<Person>& students, bool useMedian) {
     return true;
 }
 
-void displayResults(const vector<Person>& students, bool useMedian) {
+void displayResults(const vector<Person>& students) {  // FIXED: removed useMedian parameter
     cout << "\nName            Surname         Final (Avg.) | Final (Med.)" << endl;
     cout << "-------------------------------------------------------------" << endl;
     
@@ -138,7 +141,7 @@ int main() {
         if (choice >= 1 && choice <= 3 && !students.empty()) {
             // Sort students by name
             sort(students.begin(), students.end(), Person::compareByName);
-            displayResults(students, useMedian);
+            displayResults(students);  // FIXED: removed useMedian parameter
         }
         
     } while (choice != 4);
