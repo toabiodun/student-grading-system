@@ -8,35 +8,12 @@
 
 using namespace std;
 
-// Default constructor - FIXED variable names
+// Default constructor
 Person::Person() : firstName(""), lastName(""), examGrade(0), finalGrade(0.0) {}
 
-// Parameterized constructor - FIXED variable names
+// Parameterized constructor
 Person::Person(const string& first, const string& last) 
     : firstName(first), lastName(last), examGrade(0), finalGrade(0.0) {}
-
-// Copy constructor - FIXED variable names
-Person::Person(const Person& other) 
-    : firstName(other.firstName), lastName(other.lastName),
-      homeworkGrades(other.homeworkGrades), examGrade(other.examGrade),
-      finalGrade(other.finalGrade) {}
-
-// Destructor
-Person::~Person() {
-    // Vector will automatically clean up
-}
-
-// Assignment operator - FIXED variable names
-Person& Person::operator=(const Person& other) {
-    if (this != &other) {
-        firstName = other.firstName;
-        lastName = other.lastName;
-        homeworkGrades = other.homeworkGrades;
-        examGrade = other.examGrade;
-        finalGrade = other.finalGrade;
-    }
-    return *this;
-}
 
 // Getters
 string Person::getFirstName() const { return firstName; }
@@ -50,18 +27,10 @@ void Person::setFirstName(const string& first) { firstName = first; }
 void Person::setLastName(const string& last) { lastName = last; }
 
 void Person::setHomeworkGrades(const vector<int>& grades) {
-    for (int grade : grades) {
-        if (!isValidGrade(grade)) {
-            throw invalid_argument("Invalid homework grade: " + to_string(grade));
-        }
-    }
     homeworkGrades = grades;
 }
 
 void Person::setExamGrade(int grade) {
-    if (!isValidGrade(grade)) {
-        throw invalid_argument("Invalid exam grade: " + to_string(grade));
-    }
     examGrade = grade;
 }
 
@@ -74,9 +43,17 @@ void Person::calculateFinalGrade(bool useMedian) {
 
     double homeworkScore;
     if (useMedian) {
-        homeworkScore = calculateMedian();
+        vector<int> sortedGrades = homeworkGrades;
+        sort(sortedGrades.begin(), sortedGrades.end());
+        size_t size = sortedGrades.size();
+        if (size % 2 == 0) {
+            homeworkScore = (sortedGrades[size/2 - 1] + sortedGrades[size/2]) / 2.0;
+        } else {
+            homeworkScore = sortedGrades[size/2];
+        }
     } else {
-        homeworkScore = calculateAverage();
+        double sum = accumulate(homeworkGrades.begin(), homeworkGrades.end(), 0.0);
+        homeworkScore = sum / homeworkGrades.size();
     }
 
     finalGrade = homeworkScore * 0.4 + examGrade * 0.6;
@@ -85,38 +62,26 @@ void Person::calculateFinalGrade(bool useMedian) {
 
 double Person::calculateFinalGradeAverage() const {
     if (homeworkGrades.empty()) return examGrade;
-    double homeworkAvg = calculateAverage();
+    double sum = accumulate(homeworkGrades.begin(), homeworkGrades.end(), 0.0);
+    double homeworkAvg = sum / homeworkGrades.size();
     return round((homeworkAvg * 0.4 + examGrade * 0.6) * 100) / 100;
 }
 
 double Person::calculateFinalGradeMedian() const {
     if (homeworkGrades.empty()) return examGrade;
-    double homeworkMed = calculateMedian();
+    vector<int> sortedGrades = homeworkGrades;
+    sort(sortedGrades.begin(), sortedGrades.end());
+    size_t size = sortedGrades.size();
+    double homeworkMed;
+    if (size % 2 == 0) {
+        homeworkMed = (sortedGrades[size/2 - 1] + sortedGrades[size/2]) / 2.0;
+    } else {
+        homeworkMed = sortedGrades[size/2];
+    }
     return round((homeworkMed * 0.4 + examGrade * 0.6) * 100) / 100;
 }
 
-// Helper calculation methods
-double Person::calculateAverage() const {
-    if (homeworkGrades.empty()) return 0.0;
-    double sum = accumulate(homeworkGrades.begin(), homeworkGrades.end(), 0.0);
-    return sum / homeworkGrades.size();
-}
-
-double Person::calculateMedian() const {
-    if (homeworkGrades.empty()) return 0.0;
-    
-    vector<int> sortedGrades = homeworkGrades;
-    sort(sortedGrades.begin(), sortedGrades.end());
-    
-    size_t size = sortedGrades.size();
-    if (size % 2 == 0) {
-        return (sortedGrades[size/2 - 1] + sortedGrades[size/2]) / 2.0;
-    } else {
-        return sortedGrades[size/2];
-    }
-}
-
-// Input overload - FIXED variable names
+// Input overload
 istream& operator>>(istream& is, Person& person) {
     cout << "Enter first name: ";
     is >> person.firstName;
@@ -127,29 +92,17 @@ istream& operator>>(istream& is, Person& person) {
     vector<int> homework;
     int grade;
     while (is >> grade && grade != -1) {
-        if (person.isValidGrade(grade)) {
-            homework.push_back(grade);
-        } else {
-            cout << "Invalid grade! Enter grade between 0-10: ";
-        }
+        homework.push_back(grade);
     }
     person.setHomeworkGrades(homework);
     
     cout << "Enter exam grade: ";
-    int exam;
-    while (is >> exam) {
-        if (person.isValidGrade(exam)) {
-            person.setExamGrade(exam);
-            break;
-        } else {
-            cout << "Invalid grade! Enter grade between 0-10: ";
-        }
-    }
+    is >> person.examGrade;
     
     return is;
 }
 
-// Output overload - FIXED variable names
+// Output overload
 ostream& operator<<(ostream& os, const Person& person) {
     os << "Name: " << person.firstName << " " << person.lastName << endl;
     os << "Homework grades: ";
@@ -161,7 +114,7 @@ ostream& operator<<(ostream& os, const Person& person) {
     return os;
 }
 
-// Random score generation - FIXED parameters
+// Random score generation
 void Person::generateRandomScores(int homeworkCount) {
     unsigned seed = chrono::system_clock::now().time_since_epoch().count();
     default_random_engine generator(seed);
@@ -181,9 +134,4 @@ bool Person::compareByName(const Person& a, const Person& b) {
         return a.lastName < b.lastName;
     }
     return a.firstName < b.firstName;
-}
-
-// Validation
-bool Person::isValidGrade(int grade) const {
-    return grade >= 0 && grade <= 10;
 }

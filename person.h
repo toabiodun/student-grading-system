@@ -9,19 +9,14 @@ class Person {
 private:
     std::string firstName;
     std::string lastName;
-    std::vector<int> homeworkGrades;  // Changed from 'homework'
-    int examGrade;                    // Changed from 'exam'
+    std::vector<int> homeworkGrades;
+    int examGrade;
     double finalGrade;
 
 public:
-    // Constructors (Rule of Three)
+    // Constructors
     Person();
     Person(const std::string& first, const std::string& last);
-    Person(const Person& other);
-    ~Person();
-    
-    // Assignment operator
-    Person& operator=(const Person& other);
     
     // Getters
     std::string getFirstName() const;
@@ -41,18 +36,13 @@ public:
     double calculateFinalGradeAverage() const;
     double calculateFinalGradeMedian() const;
     
-    // Input/Output overloads
-    friend std::istream& operator>>(std::istream& is, Person& person);
-    friend std::ostream& operator<<(std::ostream& os, const Person& person);
-    
     // Utility methods
     void generateRandomScores(int homeworkCount);
     static bool compareByName(const Person& a, const Person& b);
     
-    // Helper methods
-    double calculateAverage() const;
-    double calculateMedian() const;
-    bool isValidGrade(int grade) const;
+    // Input/Output
+    friend std::istream& operator>>(std::istream& is, Person& person);
+    friend std::ostream& operator<<(std::ostream& os, const Person& person);
 };
 
 #endif
